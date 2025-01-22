@@ -1,4 +1,5 @@
-use std::{fs, io};
+mod file_operations;
+
 struct Userinfo {
     client_id: String,
     client_secret: String,
@@ -8,21 +9,5 @@ struct Userinfo {
 
 fn main() {
     let user_file = String::from("info.txt");
-    check_for_conf(user_file);
-}
-fn check_for_conf(user_file: String) {
-    match fs::File::open(&user_file) {
-        Ok(_) => {println!("File found")}
-        Err(_) => {
-            println!("The file does not exist. Creating file...");
-            match fs::File::create(&user_file) {
-                Ok(_) => {println!("File is created")}
-                Err(err) => {
-                    println!("Could not create file");
-                    println!("Error: {}", err);
-                }
-            }
-        }
-    }
-    
+    file_operations::check_for_conf(user_file);
 }
