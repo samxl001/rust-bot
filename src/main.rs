@@ -6,13 +6,27 @@ struct Userinfo {
     username: String,
     password: String,
 }
+impl Userinfo {
+    fn new() -> Self {
+        Userinfo {
+            client_id: String::new(),
+            client_secret: String::new(),
+            username: String::new(),
+            password: String::new(),
+        }
+    }
+}
 
 fn main() {
     let filename = String::from("info.txt");
+    let mut user_info = Userinfo::new();
     file_operations::check_for_conf(&filename);
     match file_operations::is_file_empty(&filename) {
-        Ok(true) => println!("Enter the credentials below"),
-        Ok(false) => println!("Logging in..."),
-        Err(err) => println!("Error: {}", err)
+        Ok(true) => {
+            println!("Enter the credentials below");
+            user_info = file_operations::define_userinfo();
+        }
+        Ok(false) => println!("Reading credentials..."),
+        Err(err) => println!("Error: {}", err),
     }
 }
