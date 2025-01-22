@@ -8,6 +8,11 @@ struct Userinfo {
 }
 
 fn main() {
-    let user_file = String::from("info.txt");
-    file_operations::check_for_conf(user_file);
+    let filename = String::from("info.txt");
+    file_operations::check_for_conf(&filename);
+    match file_operations::is_file_empty(&filename) {
+        Ok(true) => println!("Enter the credentials below"),
+        Ok(false) => println!("Logging in..."),
+        Err(err) => println!("Error: {}", err)
+    }
 }
