@@ -24,9 +24,12 @@ fn main() {
     match file_operations::is_file_empty(&filename) {
         Ok(true) => {
             println!("Enter the credentials below");
-            user_info = file_operations::define_userinfo();
+            user_info = file_operations::define_userinfo(&filename);
         }
-        Ok(false) => println!("Reading credentials..."),
+        Ok(false) => {
+            println!("Reading credentials...");
+            user_info = file_operations::get_userinfo(&filename);
+        },
         Err(err) => println!("Error: {}", err),
     }
 }
