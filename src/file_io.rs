@@ -15,11 +15,11 @@ pub fn check_for_conf(filename: &str) {
                     println!("File is created")
                 }
                 Err(err) => {
-                    println!("Could not create file. Error: {}", err);
+                    println!("Could not create file {}: {}", filename, err);
                 }
             }
         }
-        Err(err) => println!("Error: {}", err),
+        Err(err) => println!("Error opening file {}: {}", filename, err),
     }
 }
 pub fn is_file_empty(filename: &str) -> Result<bool, std::io::Error> {
@@ -37,10 +37,10 @@ pub fn define_userinfo(filename: &str) -> Userinfo {
     println!("Enter password: ");
     store_val(&mut info_vec);
     let userinfo = Userinfo {
-        client_id: info_vec[0].clone(),
-        client_secret: info_vec[1].clone(),
-        username: info_vec[2].clone(),
-        password: info_vec[3].clone(),
+        client_id: info_vec.remove(0),
+        client_secret: info_vec.remove(0),
+        username: info_vec.remove(0),
+        password: info_vec.remove(0),
     };
     write_to_file(filename, &info_vec);
     userinfo
@@ -61,22 +61,21 @@ fn write_to_file(filename: &str, info_vec: &Vec<String>) {
             for element in info_vec {
                 match writeln!(file, "{}", element) {
                     Ok(_) => (),
-                    Err(err) => println!("Write error occured: {}", err)
-                    }
-                
+                    Err(err) => println!("Write error occured: {}", err),
+                }
             }
         }
-        Err(err) => println!("Error {}", err)
+        Err(err) => println!("Could not write to file {}: {}", filename, err),
     }
 }
 pub fn get_userinfo(filename: &str) -> Userinfo {
     let mut info_vec: Vec<String> = Vec::new();
     get_data(filename, &mut info_vec);
     let userinfo = Userinfo {
-        client_id: info_vec[0].clone(),
-        client_secret: info_vec[1].clone(),
-        username: info_vec[2].clone(),
-        password: info_vec[3].clone(),
+        client_id: info_vec.remove(0),
+        client_secret: info_vec.remove(0),
+        username: info_vec.remove(0),
+        password: info_vec.remove(0),
     };
     userinfo
 }
@@ -92,7 +91,7 @@ fn get_data(filename: &str, info_vec: &mut Vec<String>) {
     for line_result in reader.lines() {
         match line_result {
             Ok(line) => info_vec.push(line),
-            Err(err) => println!("Error reading file: {}", err)
+            Err(err) => println!("Error reading file {}: {}", filename, err),
         }
     }
 }
