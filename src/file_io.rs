@@ -29,13 +29,13 @@ pub fn is_file_empty(filename: &str) -> Result<bool, std::io::Error> {
 pub fn define_userinfo(filename: &str) -> Userinfo {
     let mut info_vec: Vec<String> = Vec::new();
     println!("Enter client_id: ");
-    store_val(&mut info_vec);
+    collect_userinfo(&mut info_vec);
     println!("Enter client_secret: ");
-    store_val(&mut info_vec);
+    collect_userinfo(&mut info_vec);
     println!("Enter username: ");
-    store_val(&mut info_vec);
+    collect_userinfo(&mut info_vec);
     println!("Enter password: ");
-    store_val(&mut info_vec);
+    collect_userinfo(&mut info_vec);
     let userinfo = Userinfo {
         client_id: info_vec.remove(0),
         client_secret: info_vec.remove(0),
@@ -46,7 +46,7 @@ pub fn define_userinfo(filename: &str) -> Userinfo {
     userinfo
 }
 
-fn store_val(info_vec: &mut Vec<String>) {
+fn collect_userinfo(info_vec: &mut Vec<String>) {
     let mut input = String::new();
     match io::stdin().read_line(&mut input) {
         Ok(_) => info_vec.push(input.trim().to_string()),
@@ -69,13 +69,13 @@ fn write_to_file(filename: &str, info_vec: &Vec<String>) {
     }
 }
 pub fn get_userinfo(filename: &str) -> Userinfo {
-    let mut info_vec: Vec<String> = Vec::new();
-    get_data(filename, &mut info_vec);
+    let mut info: Vec<String> = Vec::new();
+    get_data(filename, &mut info);
     let userinfo = Userinfo {
-        client_id: info_vec.remove(0),
-        client_secret: info_vec.remove(0),
-        username: info_vec.remove(0),
-        password: info_vec.remove(0),
+        client_id: info.remove(0),
+        client_secret: info.remove(0),
+        username: info.remove(0),
+        password: info.remove(0),
     };
     userinfo
 }
