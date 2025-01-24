@@ -22,7 +22,7 @@ pub fn check_for_conf(filename: &str) {
         Err(err) => println!("Error opening file {}: {}", filename, err),
     }
 }
-pub fn is_file_empty(filename: &str) -> Result<bool, std::io::Error> {
+pub fn is_file_empty(filename: &str) -> Result<bool, io::Error> {
     let file_metadata = fs::metadata(filename)?;
     Ok(file_metadata.len() == 0)
 }
@@ -61,7 +61,7 @@ fn write_to_file(filename: &str, info_vec: &Vec<String>) {
             for element in info_vec {
                 match writeln!(file, "{}", element) {
                     Ok(_) => (),
-                    Err(err) => println!("Write error occured: {}", err),
+                    Err(err) => println!("Write error occurred: {}", err),
                 }
             }
         }
