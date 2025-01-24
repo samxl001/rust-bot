@@ -1,5 +1,6 @@
 mod file_io;
 mod authentication;
+mod post_op;
 
 struct Userinfo {
     client_id: String,
@@ -34,4 +35,5 @@ fn main() {
         Err(err) => println!("Error: {}", err),
     }
     let token = authentication::get_token(user_info);
+    post_op::read_posts(&token);
 }
