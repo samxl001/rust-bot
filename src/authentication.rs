@@ -18,7 +18,7 @@ pub fn get_token(user_info: Userinfo) -> String {
     let username = &user_info.username;
     let password = &user_info.password;
     
-    let client = reqwest::blocking::Client::new();
+    let client = Client::new();
     let user_agent = "RustRedditClient/0.1";
     
     let response = client

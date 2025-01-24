@@ -36,6 +36,7 @@ pub fn define_userinfo(filename: &str) -> Userinfo {
     collect_userinfo(&mut info_vec);
     println!("Enter password: ");
     collect_userinfo(&mut info_vec);
+    write_to_file(filename, &info_vec);
     let userinfo = Userinfo {
         client_id: info_vec.remove(0),
         client_secret: info_vec.remove(0),
