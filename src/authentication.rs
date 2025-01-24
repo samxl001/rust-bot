@@ -34,13 +34,13 @@ pub fn get_token(user_info: Userinfo) -> String {
         .expect("Failed to send request");
 
     let response_text = response.text().expect("Failed to read response text");
-    println!("Raw response: {}", response_text);
+    //println!("Raw response: {}", response_text);
 
     let parsed_response: TokenResponse = serde_json::from_str(&response_text)
         .expect("Failed to parse response");
     
     if let Some(access_token) = parsed_response.access_token {
-        println!("Access token: {}", access_token);
+        //println!("Access token: {}", access_token);
         access_token
     } else {
         println!("Error: {:?}", parsed_response.error);

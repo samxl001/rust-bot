@@ -3,23 +3,23 @@ use std::{
     fs,
     io::{self, BufRead, ErrorKind, Write},
 };
-pub fn check_for_conf(filename: &str) {
-    match fs::File::open(filename) {
+pub fn check_for_file(cred_filename: &str) {
+    match fs::File::open(cred_filename) {
         Ok(_) => {
             println!("File found")
         }
         Err(err) if err.kind() == ErrorKind::NotFound => {
             println!("The file does not exist. Creating file...");
-            match fs::File::create(filename) {
+            match fs::File::create(cred_filename) {
                 Ok(_) => {
                     println!("File is created")
                 }
                 Err(err) => {
-                    println!("Could not create file {}: {}", filename, err);
+                    println!("Could not create file {}: {}", cred_filename, err);
                 }
             }
         }
-        Err(err) => println!("Error opening file {}: {}", filename, err),
+        Err(err) => println!("Error opening file {}: {}", cred_filename, err),
     }
 }
 pub fn is_file_empty(filename: &str) -> Result<bool, io::Error> {
