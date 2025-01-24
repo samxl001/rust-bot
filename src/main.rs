@@ -1,17 +1,18 @@
 mod file_io;
-mod authentication;
 
 struct Userinfo {
     client_id: String,
     client_secret: String,
+    username: String,
+    password: String,
 }
 impl Userinfo {
     fn new() -> Self {
         Userinfo {
             client_id: String::new(),
             client_secret: String::new(),
-            //auth_url: String::from("https://www.reddit.com/api/v1/authorize"),
-            //token_url: String::from("https://www.reddit.com/api/v1/access_token")
+            username: String::new(),
+            password: String::new(),
         }
     }
 }
@@ -31,5 +32,4 @@ fn main() {
         }
         Err(err) => println!("Error: {}", err),
     }
-    let token = authentication::get_token(user_info);
 }
