@@ -1,4 +1,4 @@
-use super::Userinfo;
+use super::UserInfo;
 use std::{
     fs,
     io::{self, BufRead, ErrorKind, Write},
@@ -26,7 +26,7 @@ pub fn is_file_empty(filename: &str) -> Result<bool, io::Error> {
     let file_metadata = fs::metadata(filename)?;
     Ok(file_metadata.len() == 0)
 }
-pub fn define_userinfo(filename: &str) -> Userinfo {
+pub fn define_userinfo(filename: &str) -> UserInfo {
     let mut info_vec: Vec<String> = Vec::new();
     println!("Enter client_id: ");
     collect_userinfo(&mut info_vec);
@@ -37,7 +37,7 @@ pub fn define_userinfo(filename: &str) -> Userinfo {
     println!("Enter password: ");
     collect_userinfo(&mut info_vec);
     write_to_file(filename, &info_vec);
-    let userinfo = Userinfo {
+    let userinfo = UserInfo {
         client_id: info_vec.remove(0),
         client_secret: info_vec.remove(0),
         username: info_vec.remove(0),
@@ -54,7 +54,7 @@ fn collect_userinfo(info_vec: &mut Vec<String>) {
     }
 }
 
-fn write_to_file(filename: &str, info_vec: &Vec<String>) {
+pub fn write_to_file(filename: &str, info_vec: &Vec<String>) {
     let file = fs::File::create(filename);
     match file {
         Ok(mut file) => {
@@ -68,10 +68,10 @@ fn write_to_file(filename: &str, info_vec: &Vec<String>) {
         Err(err) => println!("Could not write to file {}: {}", filename, err),
     }
 }
-pub fn get_userinfo(filename: &str) -> Userinfo {
+pub fn get_userinfo(filename: &str) -> UserInfo {
     let mut info: Vec<String> = Vec::new();
     get_data(filename, &mut info);
-    let userinfo = Userinfo {
+    let userinfo = UserInfo {
         client_id: info.remove(0),
         client_secret: info.remove(0),
         username: info.remove(0),
@@ -79,7 +79,7 @@ pub fn get_userinfo(filename: &str) -> Userinfo {
     };
     userinfo
 }
-fn get_data(filename: &str, info_vec: &mut Vec<String>) {
+pub fn get_data(filename: &str, info_vec: &mut Vec<String>) {
     let file = match fs::File::open(filename) {
         Ok(file) => file,
         Err(err) => {

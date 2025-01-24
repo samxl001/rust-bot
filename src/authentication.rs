@@ -1,6 +1,7 @@
 use reqwest::blocking::Client;
 use serde::Deserialize;
-use super::Userinfo;
+use super::UserInfo;
+use super::file_io;
 
 #[derive(Deserialize, Debug)]
 struct TokenResponse {
@@ -12,12 +13,12 @@ struct TokenResponse {
     message: Option<String>,     // Additional error information
 }
 
-pub fn get_token(user_info: Userinfo) -> String {
+pub fn get_token(filename: &str, user_info: UserInfo) -> String {
     let client_id = &user_info.client_id;
     let client_secret = &user_info.client_secret;
     let username = &user_info.username;
     let password = &user_info.password;
-    
+    let mut info_vec: Vec<String> = Vec::new();
     let client = Client::new();
     let user_agent = "RustRedditClient/0.1";
     
@@ -41,10 +42,19 @@ pub fn get_token(user_info: Userinfo) -> String {
     
     if let Some(access_token) = parsed_response.access_token {
         //println!("Access token: {}", access_token);
+        info_vec.push(access_token.clone());
+        file_io::write_to_file(filename, &info_vec);
         access_token
     } else {
         println!("Error: {:?}", parsed_response.error);
         panic!("Failed to obtain access token");
     }
+}
+pub fn use_token(filename: &str) -> String{
+    let mut info_vec: Vec<String> = Vec::new();
+    let mut acccess_token = String::new();
+    file_io::get_data(filename, &mut info_vec);
+    acccess_token = info_vec.remove(0);
+    acccess_token
 }
 
