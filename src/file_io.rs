@@ -43,7 +43,6 @@ pub fn define_userinfo(filename: &str) -> Userinfo {
         username: info_vec.remove(0),
         password: info_vec.remove(0),
     };
-    write_to_file(filename, &info_vec);
     userinfo
 }
 
