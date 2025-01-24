@@ -4,5 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-oauth2 = "5.0"
-reqwest = "0.12.12"
+oauth2 = {version = "5.0.0", features = ["reqwest-blocking"]}
+url = "2.5.4"
+reqwest = {version = "0.12", features = ["blocking"]}

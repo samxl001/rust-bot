@@ -32,15 +32,13 @@ pub fn define_userinfo(filename: &str) -> Userinfo {
     collect_userinfo(&mut info_vec);
     println!("Enter client_secret: ");
     collect_userinfo(&mut info_vec);
-    println!("Enter username: ");
-    collect_userinfo(&mut info_vec);
-    println!("Enter password: ");
-    collect_userinfo(&mut info_vec);
+    // println!("Enter username: ");
+    // collect_userinfo(&mut info_vec);
+    // println!("Enter password: ");
+    // collect_userinfo(&mut info_vec);
     let userinfo = Userinfo {
         client_id: info_vec.remove(0),
         client_secret: info_vec.remove(0),
-        username: info_vec.remove(0),
-        password: info_vec.remove(0),
     };
     write_to_file(filename, &info_vec);
     userinfo
@@ -74,8 +72,6 @@ pub fn get_userinfo(filename: &str) -> Userinfo {
     let userinfo = Userinfo {
         client_id: info.remove(0),
         client_secret: info.remove(0),
-        username: info.remove(0),
-        password: info.remove(0),
     };
     userinfo
 }
