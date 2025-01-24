@@ -1,4 +1,5 @@
 mod file_io;
+mod authentication;
 
 struct Userinfo {
     client_id: String,
@@ -32,4 +33,5 @@ fn main() {
         }
         Err(err) => println!("Error: {}", err),
     }
+    let token = authentication::get_token(user_info);
 }

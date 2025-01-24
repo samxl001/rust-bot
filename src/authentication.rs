@@ -1,75 +1,50 @@
-use oauth2::basic::BasicClient;
-use oauth2::reqwest;
-use oauth2::{
-    AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken, PkceCodeChallenge, RedirectUrl,
-    Scope, TokenResponse, TokenUrl,
-};
-use std::io::{self, Write};
-use url::Url;
-
+use reqwest::blocking::Client;
+use serde::Deserialize;
 use super::Userinfo;
 
-pub fn get_token(userinfo: Userinfo) -> Result<String, Box<dyn std::error::Error>> {
-    let client = BasicClient::new(ClientId::new(userinfo.client_id))
-        .set_client_secret(ClientSecret::new(userinfo.client_secret))
-        .set_auth_uri(AuthUrl::new(
-            "https://www.reddit.com/api/v1/authorize".to_string(),
-        )?)
-        .set_token_uri(TokenUrl::new(
-            "https://www.reddit.com/api/v1/access_token".to_string(),
-        )?)
-        // Set the URL the user will be redirected to after the authorization process.
-        .set_redirect_uri(RedirectUrl::new("http://localhost:8080".to_string())?);
-
-    // Generate a PKCE challenge.
-    let (pkce_challenge, pkce_verifier) = PkceCodeChallenge::new_random_sha256();
-
-    // Generate the full authorization URL.
-    let (auth_url, csrf_token) = client
-        .authorize_url(CsrfToken::new_random)
-        // Set the desired scopes.
-        .add_scope(Scope::new("read".to_string()))
-        .add_scope(Scope::new("write".to_string()))
-        // Set the PKCE code challenge.
-        .set_pkce_challenge(pkce_challenge)
-        .url();
-
-    // This is the URL you should redirect the user to, in order to trigger the authorization
-    // process.
-    println!("Browse to: {}", auth_url);
-
-    // Once the user has been redirected to the redirect URL, you'll have access to the
-    // authorization code. For security reasons, your code should verify that the `state`
-    // parameter returned by the server matches `csrf_token`.
-
-    let http_client = reqwest::blocking::ClientBuilder::new()
-        .redirect(reqwest::redirect::Policy::none())
-        .build()
-        .expect("Client should build");
-    io::stdout().flush()?;
-    let mut auth_code = String::new();
-    io::stdin().read_line(&mut auth_code)?;
-    let auth_code = auth_code.trim();
-
-    // Now you can trade it for an access token.
-    let token_result = client
-        .exchange_code(AuthorizationCode::new(auth_code.to_string()))
-        // Set the PKCE code verifier.
-        .set_pkce_verifier(pkce_verifier)
-        .request(&http_client);
-    match token_result {
-        Ok(token) => {
-            println!("Access Token: {}", token.access_token().secret());
-            if let Some(refresh_token) = token.refresh_token() {
-                println!("Refresh Token: {}", refresh_token.secret());
-            }
-            Ok(token.access_token().secret().to_string())
-        }
-        Err(err) => {
-            eprintln!("Error exchanging authorization code: {}", err);
-            Err(Box::new(err))
-        }
-    }
-
-    // Unwrapping token_result will either produce a Token or a RequestTokenError.
+#[derive(Deserialize, Debug)]
+struct TokenResponse {
+    access_token: Option<String>, // Token may be absent in error responses
+    token_type: Option<String>,
+    expires_in: Option<i64>,
+    scope: Option<String>,
+    error: Option<String>,       // Handles error responses
+    message: Option<String>,     // Additional error information
 }
+
+pub fn get_token(user_info: Userinfo) -> String {
+    let client_id = &user_info.client_id;
+    let client_secret = &user_info.client_secret;
+    let username = &user_info.username;
+    let password = &user_info.password;
+    
+    let client = reqwest::blocking::Client::new();
+    let user_agent = "RustRedditClient/0.1";
+    
+    let response = client
+        .post("https://www.reddit.com/api/v1/access_token")
+        .header("User-Agent", user_agent)
+        .basic_auth(client_id, Some(client_secret))
+        .form(&[
+            ("grant_type", "password"),
+            ("username", username),
+            ("password", password),
+        ])
+        .send()
+        .expect("Failed to send request");
+
+    let response_text = response.text().expect("Failed to read response text");
+    println!("Raw response: {}", response_text);
+
+    let parsed_response: TokenResponse = serde_json::from_str(&response_text)
+        .expect("Failed to parse response");
+    
+    if let Some(access_token) = parsed_response.access_token {
+        println!("Access token: {}", access_token);
+        access_token
+    } else {
+        println!("Error: {:?}", parsed_response.error);
+        panic!("Failed to obtain access token");
+    }
+}
+

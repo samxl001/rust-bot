@@ -4,5 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-oauth2 = "5.0"
-reqwest = "0.12.12"
+oauth2 = { version = "4.3", features = ["reqwest"] }
+reqwest = { version = "0.11", features = ["blocking", "json"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
