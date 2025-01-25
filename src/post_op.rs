@@ -5,6 +5,7 @@ pub fn read_posts(token: &str) {
     let user_agent = "RustRedditClient/0.1";
     let http_client = Client::new();
     let mut post_vec: Vec<&str> = Vec::new();
+    let db_filename = String::from("data.db3");
     let response: serde_json::Value = http_client
         .get("https://oauth.reddit.com/r/all/hot?limit=100")
         .bearer_auth(token)
@@ -30,6 +31,7 @@ pub fn read_posts(token: &str) {
     //     println!("{}", post);
     // }
     //println!("{}", post_vec.len());
-    db_op::populate_table(post_vec);
-    db_op::query_table();
+    db_op::populate_table(&db_filename, post_vec);
+    db_op::query_rows(&db_filename);
+    //db_op::delete_table(&db_filename,"posts");
 }
