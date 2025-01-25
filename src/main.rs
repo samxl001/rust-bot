@@ -1,7 +1,7 @@
 mod authentication;
+mod db_op;
 mod file_io;
 mod post_op;
-mod db_op;
 
 struct UserInfo {
     client_id: String,

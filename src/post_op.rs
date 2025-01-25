@@ -1,5 +1,5 @@
-use reqwest::blocking::Client;
 use super::db_op;
+use reqwest::blocking::Client;
 
 pub fn read_posts(token: &str) {
     let user_agent = "RustRedditClient/0.1";

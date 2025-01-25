@@ -1,18 +1,23 @@
-use rusqlite::{params, Connection, Result };
+use rusqlite::{params, Connection, Result};
 
 pub fn populate_table(post_vec: Vec<&str>) -> Result<()> {
     let conn = Connection::open("data.db3")?;
+
+    println!("post_vec1: {}", post_vec.len());
     conn.execute(
         "CREATE TABLE IF NOT EXISTS posts
-            id INTEGER PRIMARY KEY
-            content TEXT NOT NULL",
-            [],
+            (id INTEGER PRIMARY KEY,
+            content TEXT NOT NULL)",
+        [],
     )?;
+
     println!("post_vec: {}", post_vec.len());
     for value in &post_vec {
-        println!("writing to db");
         conn.execute(
-            "INSERT INTO posts (content) VALUES (?1)",
+            "INSERT INTO posts (content)
+            SELECT ?1
+            WHERE NOT EXISTS
+            (SELECT 1 FROM posts WHERE content = ?1);",
             params![value],
         )?;
     }
