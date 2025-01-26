@@ -1,5 +1,3 @@
-use rusqlite::fallible_iterator::FallibleIterator;
-
 mod analysis_op;
 mod authentication;
 mod db_op;
@@ -28,21 +26,24 @@ fn main() {
     let token_filename = String::from("token.txt");
     let mut user_info = UserInfo::new();
     let mut token = String::new();
+    let keyword_filename = String::from("keywords.json");
+    let keyword_result = file_io::get_vec_from_json(&keyword_filename);
+    let mut query_vec: Vec<String> = Vec::new();
+    match keyword_result {
+        Ok(keyword_vec) => {
+            for keyword in keyword_vec {
+                for word in keyword {
+                    query_vec.push(word.to_string()); 
+                }
+            }
+        }
+        Err(e) => println!("Could not read keyword file: {}", e),
+    }
     define_user_cred(cred_filename, &mut user_info);
     setup_token(&token_filename, user_info, &mut token);
     post_op::read_posts(&token);
-    let query: Vec<String> = vec![
-        "Trump".to_string(),
-        "Drumpf".to_string(),
-        "Donald".to_string(),
-        "Sweet Potato Hitler".to_string(),
-        "Mango Mussolini".to_string(),
-        "Cheeto-in-Chief".to_string(),
-        "Agent Orange".to_string(),
-        "Tangerine Tornado".to_string(),
-    ];
     let posts_vec: Vec<String> = db_op::query_values("data.db3", "posts").unwrap();
-    let results_vec: Vec<String> = analysis_op::search_titles(query, posts_vec);
+    let results_vec: Vec<String> = analysis_op::search_titles(query_vec, posts_vec);
     for results in results_vec {
         println!("{}", results);
     }

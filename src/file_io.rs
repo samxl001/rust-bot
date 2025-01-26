@@ -3,6 +3,7 @@ use std::{
     fs,
     io::{self, BufRead, ErrorKind, Write},
 };
+use serde_json::Value;
 pub fn check_for_file(filename: &str) {
     match fs::File::open(filename) {
         Ok(_) => {
@@ -94,4 +95,29 @@ pub fn get_data(filename: &str, info_vec: &mut Vec<String>) {
             Err(err) => println!("Error reading file {}: {}", filename, err),
         }
     }
+}
+pub fn get_vec_from_json(filename: &str) -> Result<Vec<Vec<String>>, Box<dyn std::error::Error>> {
+    let json_file = fs::read_to_string(filename).
+        map_err(|err| {
+            println!("Could not read file {}: ", filename);
+            err
+        })?;
+   
+    let json: Value = serde_json::from_str(&json_file).
+        map_err(|err| {
+            println!("Could not parse file {}: ", filename);
+            err
+        })?;
+    let mut result: Vec<Vec<String>> = Vec::new();
+    if let Some(queries) = json.get("queries").and_then(|v| v.as_object()) {
+        for value in queries.values() {
+            if let Some(arr) = value.as_array() {
+                let strings: Vec<String> = arr.iter()
+                    .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                    .collect();
+                result.push(strings);
+            }
+        }
+    }
+    Ok(result)
 }
