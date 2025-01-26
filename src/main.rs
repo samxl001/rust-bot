@@ -29,18 +29,7 @@ fn main() {
     let mut user_info = UserInfo::new();
     let mut token = String::new();
     define_user_cred(cred_filename, &mut user_info);
-    file_io::check_for_file(&token_filename);
-    match file_io::is_file_empty(&token_filename) {
-        Ok(true) => {
-            println!("Getting token to authenticate",);
-            token = authentication::get_token(&token_filename, user_info);
-        }
-        Ok(false) => {
-            println!("Using token to authenticate");
-            token = authentication::use_token(&token_filename);
-        }
-        Err(err) => println!("Other error occurred: {}", err),
-    }
+    setup_token(&token_filename, user_info, &mut token);
     post_op::read_posts(&token);
     let query: Vec<String> = vec![
         "Trump".to_string(),
@@ -56,6 +45,21 @@ fn main() {
     let results_vec: Vec<String> = analysis_op::search_titles(query, posts_vec);
     for results in results_vec {
         println!("{}", results);
+    }
+}
+
+fn setup_token(token_filename: &String, mut user_info: UserInfo, token: &mut String) {
+    file_io::check_for_file(&token_filename);
+    match file_io::is_file_empty(&token_filename) {
+        Ok(true) => {
+            println!("Getting token to authenticate", );
+            *token = authentication::get_token(&token_filename, user_info);
+        }
+        Ok(false) => {
+            println!("Using token to authenticate");
+            *token = authentication::use_token(&token_filename);
+        }
+        Err(err) => println!("Other error occurred: {}", err),
     }
 }
 
