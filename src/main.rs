@@ -1,3 +1,6 @@
+use rusqlite::fallible_iterator::FallibleIterator;
+
+mod analysis_op;
 mod authentication;
 mod db_op;
 mod file_io;
@@ -39,6 +42,21 @@ fn main() {
         Err(err) => println!("Other error occurred: {}", err),
     }
     post_op::read_posts(&token);
+    let query: Vec<String> = vec![
+        "Trump".to_string(),
+        "Drumpf".to_string(),
+        "Donald".to_string(),
+        "Sweet Potato Hitler".to_string(),
+        "Mango Mussolini".to_string(),
+        "Cheeto-in-Chief".to_string(),
+        "Agent Orange".to_string(),
+        "Tangerine Tornado".to_string(),
+    ];
+    let posts_vec: Vec<String> = db_op::query_values("data.db3", "posts").unwrap();
+    let results_vec: Vec<String> = analysis_op::search_titles(query, posts_vec);
+    for results in results_vec {
+        println!("{}", results);
+    }
 }
 
 fn define_user_cred(cred_filename: String, user_info: &mut UserInfo) {
