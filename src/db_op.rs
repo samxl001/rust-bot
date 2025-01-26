@@ -1,53 +1,68 @@
-use rusqlite::{params, Connection, Result, Error};
+use rusqlite::{params, Connection, Error, Result};
 
-pub fn populate_table(filename:&str, post_vec: Vec<&str>) -> Result<()> {
+pub fn populate_table(filename: &str, table_name: &str, post_vec: Vec<&str>) -> Result<()> {
     let conn = match Connection::open(filename) {
         Ok(c) => c,
         Err(e) => {
-            println!("Failed to open connection to {}", e);
+            println!("Failed to connect to database {}", e);
             return Err(e);
         }
     };
 
-    conn.execute(
-        "CREATE TABLE IF NOT EXISTS posts
-            (id INTEGER PRIMARY KEY,
-            content TEXT NOT NULL)",
-        [],
-    )?;
+    // Dynamically construct the CREATE TABLE SQL query
+    let create_table_query = format!(
+        "CREATE TABLE IF NOT EXISTS {} (
+            id INTEGER PRIMARY KEY,
+            content TEXT NOT NULL
+        )",
+        table_name
+    );
+
+    conn.execute(&create_table_query, [])?;
+
+    // Dynamically construct the INSERT query
+    let insert_query = format!(
+        "INSERT INTO {} (content)
+        SELECT ?1
+        WHERE NOT EXISTS
+        (SELECT 1 FROM {} WHERE content = ?1)",
+        table_name, table_name
+    );
 
     for value in &post_vec {
-        conn.execute(
-            "INSERT INTO posts (content)
-            SELECT ?1
-            WHERE NOT EXISTS
-            (SELECT 1 FROM posts WHERE content = ?1)",
-            params![value],
-        )?;
+        conn.execute(&insert_query, params![value])?;
     }
+
     Ok(())
 }
-pub fn query_rows(filename: &str) -> Result<()> {
+pub fn query_values(filename: &str, table_name: &str) -> Result<Vec<String>> {
     let conn = match Connection::open(filename) {
         Ok(c) => c,
         Err(e) => {
-            println!("Failed to open connection to {}", e);
+            println!("Failed to connect to database {}", e);
             return Err(e);
         }
     };
-    let mut stmt = conn.prepare("SELECT id, content FROM posts")?;
-    // Map each row to a tuple (id, content)
+
+    let query = format!("SELECT content FROM {}", table_name);
+    let mut stmt = conn.prepare("SELECT content FROM posts")?;
+    // Map each row to extract only the `content` field
     let post_iter = stmt.query_map([], |row| {
-        Ok((row.get::<_, i32>(0)?, row.get::<_, String>(1)?))
+        row.get::<_, String>(0) // Get the first column (`content`)
     })?;
-    // Iterate through the rows and print the data
+
+    // Collect the content into a vector
+    let mut contents = Vec::new();
     for post in post_iter {
-        let (id, content) = post?;
-        println!("ID: {}, Content: {}", id, content);
+        match post {
+            Ok(c) => contents.push(c),
+            Err(e) => return Err(e),
+        }
     }
-    Ok(())
+
+    Ok(contents)
 }
-pub fn delete_table(filename:&str, table_name: &str) -> Result<()> {
+pub fn delete_table(filename: &str, table_name: &str) -> Result<()> {
     // Validate table name to prevent SQL injection
     if !table_name.chars().all(|c| c.is_alphanumeric() || c == '_') {
         return Err(Error::InvalidQuery);

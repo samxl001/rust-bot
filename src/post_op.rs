@@ -27,11 +27,7 @@ pub fn read_posts(token: &str) {
             }
         }
     }
-    // for post in &post_vec {
-    //     println!("{}", post);
-    // }
-    //println!("{}", post_vec.len());
-    db_op::populate_table(&db_filename, post_vec);
-    db_op::query_rows(&db_filename);
+    db_op::populate_table(&db_filename, "posts", post_vec).expect("TODO: panic message");
+    db_op::query_values(&db_filename, "posts").expect("TODO: panic message");
     //db_op::delete_table(&db_filename,"posts");
 }
