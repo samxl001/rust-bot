@@ -1,11 +1,24 @@
-use super::db_op;
+use std::time::Duration;
+use super::{authentication, db_op};
 use reqwest::blocking::Client;
 
-pub fn read_posts(token: &str) {
+pub fn read_titles(token: &str) {
     let user_agent = "RustRedditClient/0.1";
     let http_client = Client::new();
     let mut post_vec: Vec<&str> = Vec::new();
     let db_filename = String::from("data.db3");
+    loop {
+        match authentication::check_internet() {
+            Ok(()) => {
+                println!("Internet access is found");
+                break;
+            }
+            Err(e) => {
+                println!("{} Retrying", e);
+                std::thread::sleep(Duration::from_secs(5));
+            }
+        }
+    }
     let response: serde_json::Value = http_client
         .get("https://oauth.reddit.com/r/all/hot?limit=100")
         .bearer_auth(token)

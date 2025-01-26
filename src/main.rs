@@ -43,7 +43,7 @@ fn main() {
     }
     define_user_cred(cred_filename, &mut user_info);
     setup_token(&token_filename, user_info, &mut token);
-    post_op::read_posts(&token);
+    post_op::read_titles(&token);
     let posts_vec: Vec<String> = db_op::query_values("data.db3", "posts").unwrap();
     let results_vec: Vec<String> = analysis_op::search_titles(query_vec, posts_vec);
     for results in results_vec {
