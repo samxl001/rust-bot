@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 mod analysis_op;
 mod authentication;
 mod db_op;
@@ -37,7 +39,7 @@ fn main() {
                 }
             }
         }
-        Err(e) => println!("Could not read keyword file: {}", e),
+        Err(e) => println!("Could not read keywords file: {}", e),
     }
     define_user_cred(cred_filename, &mut user_info);
     setup_token(&token_filename, user_info, &mut token);
@@ -49,8 +51,20 @@ fn main() {
     }
 }
 
-fn setup_token(token_filename: &String, mut user_info: UserInfo, token: &mut String) {
+fn setup_token(token_filename: &String, user_info: UserInfo, token: &mut String) {
     file_io::check_for_file(&token_filename);
+    loop {
+        match authentication::check_internet() { 
+            Ok(()) => {
+                println!("Internet access is found");
+                break;
+            }
+            Err(e) => {
+                println!("{} Retrying", e);
+                std::thread::sleep(Duration::from_secs(5));
+            }
+        }
+    }
     match file_io::is_file_empty(&token_filename) {
         Ok(true) => {
             println!("Getting token to authenticate", );

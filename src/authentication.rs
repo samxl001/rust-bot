@@ -1,7 +1,9 @@
+use std::time::Duration;
 use super::file_io;
 use super::UserInfo;
 use reqwest::blocking::Client;
 use serde::Deserialize;
+
 
 #[derive(Deserialize, Debug)]
 struct TokenResponse {
@@ -56,4 +58,26 @@ pub fn use_token(filename: &str) -> String {
     file_io::get_data(filename, &mut info_vec);
     access_token = info_vec.remove(0);
     access_token
+}
+
+pub fn check_internet() -> Result<(), String> {
+    let target = "https://google.com";
+    let timeout = Duration::from_secs(5);
+
+    let client = Client::builder().timeout(timeout).build();
+    match client {
+        Ok(client) => {
+            match client.get(target).send() {
+                Ok(response) => {
+                    if response.status().is_success() {
+                        Ok(()) // Internet access confirmed
+                    } else {
+                        Err(format!("Received non-success status code: {}", response.status()))
+                    }
+                }
+                Err(_) => Err("Internet access is not found".to_string()),
+            }
+        }
+        Err(e) => Err(format!("Failed to create HTTP client: {}", e)),
+    }
 }
