@@ -1,9 +1,18 @@
 use super::UserInfo;
+use serde::Deserialize;
 use serde_json::Value;
+use std::fs::File;
+use std::io::BufReader;
 use std::{
     fs,
     io::{self, BufRead, ErrorKind, Write},
 };
+
+#[derive(Deserialize)]
+struct Queries {
+    queries: std::collections::HashMap<String, Vec<String>>,
+}
+
 pub fn check_for_file(filename: &str) {
     match fs::File::open(filename) {
         Ok(_) => {
@@ -119,4 +128,18 @@ pub fn get_vec_from_json(filename: &str) -> Result<Vec<Vec<String>>, Box<dyn std
         }
     }
     Ok(result)
+}
+pub fn get_querynames(filename: &str) -> Vec<String> {
+    let file = File::open(filename).unwrap();
+    let reader = BufReader::new(file);
+    let mut result: Vec<String> = Vec::new();
+
+    // Parse the JSON file into a Queries struct
+    let parsed: Queries = serde_json::from_reader(reader).unwrap();
+
+    // Iterate over all query names in the "queries" field and print them
+    for query_name in parsed.queries.keys() {
+        result.push(query_name.to_string());
+    }
+    result
 }

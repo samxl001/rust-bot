@@ -10,7 +10,7 @@ impl AnalysisOp {
         }
     }
 }
-pub fn search_titles(query: Vec<String>, info: Vec<String>) -> Vec<String> {
+pub fn search_titles(query: Vec<String>, info: &Vec<String>) -> Vec<String> {
     let mut analysis = AnalysisOp::new();
     analysis.query = query;
     for word in analysis.query.iter() {

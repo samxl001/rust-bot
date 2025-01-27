@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::time::Duration;
 
 mod analysis_op;
@@ -30,25 +31,32 @@ fn main() {
     let mut token = String::new();
     let keyword_filename = String::from("keywords.json");
     let keyword_result = file_io::get_vec_from_json(&keyword_filename);
-    let mut query_vec: Vec<String> = Vec::new();
+    let querynames_vec = file_io::get_querynames(&keyword_filename);
+    define_user_cred(cred_filename, &mut user_info);
+    setup_token(&token_filename, user_info, &mut token);
+    post_op::process_reddit_posts(&mut token);
+    let posts_vec: Vec<String> = db_op::query_values("data.db3", "posts").unwrap();
     match keyword_result {
         Ok(keyword_vec) => {
+            let mut query_vec: Vec<String> = Vec::new();
             for keyword in keyword_vec {
                 for word in keyword {
                     query_vec.push(word.to_string());
+                }
+                for query_name in &querynames_vec {
+                    println!("{}", query_name);
+                    let results_vec: Vec<String> = analysis_op::search_titles(query_vec.clone(), &posts_vec);
                 }
             }
         }
         Err(e) => println!("Could not read keywords file: {}", e),
     }
-    define_user_cred(cred_filename, &mut user_info);
-    setup_token(&token_filename, user_info, &mut token);
-    post_op::process_reddit_posts(&mut token);
-    let posts_vec: Vec<String> = db_op::query_values("data.db3", "posts").unwrap();
-    let results_vec: Vec<String> = analysis_op::search_titles(query_vec, posts_vec);
-    for results in results_vec {
-        println!("{}", results);
-    }
+    
+    //let key_value = HashMap::new();
+    // for queryname in querynames_vec {
+    //     let results_vec: Vec<String> = analysis_op::search_titles(&query_vec, &posts_vec);
+    // }
+    
 }
 
 fn setup_token(token_filename: &String, user_info: UserInfo, token: &mut String) {
