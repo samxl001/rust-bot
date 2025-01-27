@@ -1,9 +1,8 @@
-use std::time::Duration;
-use super::file_io;
 use super::UserInfo;
+use super::{authentication, file_io};
 use reqwest::blocking::Client;
 use serde::Deserialize;
-
+use std::time::Duration;
 
 #[derive(Deserialize, Debug)]
 struct TokenResponse {
@@ -15,7 +14,7 @@ struct TokenResponse {
     message: Option<String>, // Additional error information
 }
 
-pub fn get_token(filename: &str, user_info: UserInfo) -> String {
+pub fn get_token(filename: &str, user_info: &UserInfo) -> String {
     let client_id = &user_info.client_id;
     let client_secret = &user_info.client_secret;
     let username = &user_info.username;
@@ -60,7 +59,7 @@ pub fn use_token(filename: &str) -> String {
     access_token
 }
 
-pub fn check_internet() -> Result<(), String> {
+fn check_internet() -> Result<(), String> {
     let target = "https://google.com";
     let timeout = Duration::from_secs(5);
 
@@ -72,12 +71,29 @@ pub fn check_internet() -> Result<(), String> {
                     if response.status().is_success() {
                         Ok(()) // Internet access confirmed
                     } else {
-                        Err(format!("Received non-success status code: {}", response.status()))
+                        Err(format!(
+                            "Received non-success status code: {}",
+                            response.status()
+                        ))
                     }
                 }
                 Err(_) => Err("Internet access is not found".to_string()),
             }
         }
         Err(e) => Err(format!("Failed to create HTTP client: {}", e)),
+    }
+}
+pub fn establish_connection_success() {
+    loop {
+        match check_internet() {
+            Ok(()) => {
+                println!("Internet access is found");
+                break;
+            }
+            Err(e) => {
+                println!("{} Retrying", e);
+                std::thread::sleep(Duration::from_secs(5));
+            }
+        }
     }
 }

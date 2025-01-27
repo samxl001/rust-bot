@@ -1,46 +1,52 @@
-use std::time::Duration;
-use super::{authentication, db_op};
+use super::{authentication, db_op, file_io, UserInfo};
 use reqwest::blocking::Client;
+use serde_json::Value;
+use std::error::Error;
 
-pub fn read_titles(token: &str) {
-    let user_agent = "RustRedditClient/0.1";
+fn fetch_reddit_posts(token: &str, user_agent: &str) -> Result<Value, Box<dyn Error>> {
+    authentication::establish_connection_success();
     let http_client = Client::new();
-    let mut post_vec: Vec<&str> = Vec::new();
-    let db_filename = String::from("data.db3");
-    loop {
-        match authentication::check_internet() {
-            Ok(()) => {
-                println!("Internet access is found");
-                break;
-            }
-            Err(e) => {
-                println!("{} Retrying", e);
-                std::thread::sleep(Duration::from_secs(5));
-            }
-        }
-    }
-    let response: serde_json::Value = http_client
+
+    let response = http_client
         .get("https://oauth.reddit.com/r/all/hot?limit=100")
         .bearer_auth(token)
         .header("user-agent", user_agent)
-        .send()
-        .expect("Failed to send request")
-        .json()
-        .expect("Failed to get json");
+        .send()?;
 
-    if let Some(posts) = response["data"]["children"].as_array() {
-        for post in posts {
-            if let Some(data) = post["data"].as_object() {
-                if let Some(title) = data["title"].as_str() {
-                    //println!("Post title: {}", title);
-                    if !post_vec.contains(&title) {
-                        post_vec.push(title);
+    if response.status().is_success() {
+        Ok(response.json()?)
+    } else {
+        Err(format!("Non-success status code returned: {}", response.status()).into())
+    }
+}
+
+pub fn process_reddit_posts(token: &mut str) {
+    let mut post_vec: Vec<&str> = Vec::new();
+    let db_filename = String::from("data.db3");
+    let user_agent = "RustRedditClient/0.1";
+    match fetch_reddit_posts(token, user_agent) {
+        Ok(json) => {
+            if let Some(posts) = json["data"]["children"].as_array() {
+                for post in posts {
+                    if let Some(data) = post["data"].as_object() {
+                        if let Some(title) = data["title"].as_str() {
+                            if !post_vec.contains(&title) {
+                                post_vec.push(title);
+                            }
+                        }
                     }
                 }
             }
+            db_op::populate_table(&db_filename, "posts", post_vec).expect("Failed to populate table");
+        }
+        Err(e) => {
+            println!("Failed to fetch or process posts: {}", e);
+            if e.to_string().contains("401") {
+                //TODO: setup a way to renew token dynamically
+                println!("Retrying with a new token...");
+            } else {
+                println!("Unhandled error. Exiting.");
+            }
         }
     }
-    db_op::populate_table(&db_filename, "posts", post_vec).expect("TODO: panic message");
-    db_op::query_values(&db_filename, "posts").expect("TODO: panic message");
-    //db_op::delete_table(&db_filename,"posts");
 }
