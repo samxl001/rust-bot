@@ -37,6 +37,7 @@ pub fn populate_table(filename: &str, table_name: &str, post_vec: Vec<&str>) -> 
     Ok(())
 }
 pub fn query_values(filename: &str, table_name: &str) -> Result<Vec<String>> {
+    
     let conn = match Connection::open(filename) {
         Ok(c) => c,
         Err(e) => {

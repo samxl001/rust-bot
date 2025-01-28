@@ -66,6 +66,7 @@ fn main() {
                         mentions.push(result.len() as i64);
                     }
                 }
+                db_op::update_field_values(&database_filename, keywords, mentions).expect("Failed to update field values");
             }
             Err(e) => {
                 eprintln!("Error: {}", e);

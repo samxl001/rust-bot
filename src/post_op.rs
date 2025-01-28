@@ -21,6 +21,7 @@ fn fetch_reddit_posts(token: &str, user_agent: &str) -> Result<Value, Box<dyn Er
 }
 
 pub fn process_reddit_posts(token: &mut str) {
+    println!("Start processing posts...");
     let mut post_vec: Vec<&str> = Vec::new();
     let db_filename = String::from("data.db3");
     let user_agent = "RustRedditClient/0.1";
