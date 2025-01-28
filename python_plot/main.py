@@ -1,5 +1,6 @@
 import sqlite3
 import matplotlib.pyplot as plt
+import os
 
 def fetch_data_from_db(database_filename):
     # Connect to the SQLite database
@@ -45,7 +46,7 @@ def plot_line_graph(x_data, y_data, output_file):
         plt.plot(x_indices, values, label=field)  # Plotting each field's data
     
     # Customize the plot
-    plt.title("Unique Mentions by Name over Time")
+    plt.title("Unique Mentions by Name over Time on Reddit (r/all/hot)")
     plt.xlabel("Date")
     plt.ylabel("Mentions")
     
@@ -60,11 +61,11 @@ def plot_line_graph(x_data, y_data, output_file):
     plt.savefig(output_file)
     print(f"Graph saved as {output_file}")
 
-# Example usage:
-database_filename = 'data.db3'  # Replace with your database file
-x_data, y_data = fetch_data_from_db(database_filename)
-print(x_data)
-print(y_data)
+def main():
+    database_filename = 'data.db3'  # Replace with your database file
+    x_data, y_data = fetch_data_from_db(database_filename)
+    # Plot the graph and save it as PNG
+    plot_line_graph(x_data, y_data, 'result.png')
+    os.remove(database_filename)
 
-# Plot the graph and save it as PNG
-plot_line_graph(x_data, y_data, 'result.png')
+main()
