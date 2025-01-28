@@ -62,21 +62,13 @@ def plot_line_graph(x_data, y_data, output_file):
     plt.savefig(output_file)
     print(f"Graph saved as {output_file}")
     
-def copy_file(database_filename):
-    cur_dir = os.getcwd()
-    parent_dir = os.path.dirname(cur_dir)
-    source = parent_dir + '/' + database_filename
-    destination = cur_dir + '/' + database_filename
-    shutil.copy(source, destination)
-    
-    
 
 def main():
-    database_filename = 'data.db3'  # Replace with your database file
-    #copy_file(database_filename)
+    database_filename = 'data.db3'
+
     x_data, y_data = fetch_data_from_db(database_filename)
+
     # Plot the graph and save it as PNG
     plot_line_graph(x_data, y_data, 'result.png')
-    #os.remove(database_filename)
 
 main()
