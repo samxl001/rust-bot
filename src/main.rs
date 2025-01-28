@@ -1,3 +1,5 @@
+use std::process::exit;
+
 mod analysis_op;
 mod authentication;
 mod db_op;
@@ -57,9 +59,10 @@ fn main() {
             eprintln!("Error: {}", e);
         }
     }
-    db_op::update_field_values(&database_filename, keywords, mentions).expect("Failed to update mentions table values");
-    
-    
+    if let Err(e) = analysis_op::run_python_script() {
+        eprintln!("Error running Python script: {}", e);
+        exit(1);
+    }
 }
 
 fn setup_token(token_filename: &String, user_info: UserInfo, token: &mut String) {
