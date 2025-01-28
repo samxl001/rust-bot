@@ -1,5 +1,5 @@
 use super::UserInfo;
-use super::{authentication, file_io};
+use super::file_io;
 use reqwest::blocking::Client;
 use serde::Deserialize;
 use std::time::Duration;

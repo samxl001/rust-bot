@@ -1,4 +1,4 @@
-use super::{authentication, db_op, file_io, UserInfo};
+use super::{authentication, db_op};
 use reqwest::blocking::Client;
 use serde_json::Value;
 use std::error::Error;

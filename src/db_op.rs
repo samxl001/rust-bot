@@ -1,4 +1,3 @@
-use chrono::Local;
 use rusqlite::{params, params_from_iter, Connection, Error, Result};
 
 pub fn populate_table(filename: &str, table_name: &str, post_vec: Vec<&str>) -> Result<()> {
