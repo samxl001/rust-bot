@@ -12,4 +12,12 @@ A Reddit bot written in Rust that parses the titles of posts in the **r/all/hot*
 
 - **Rust**: Ensure you have [Rust](https://www.rust-lang.org/) installed on your system.
 - **Python**: Required for graph generation. You can install Python from [python.org](https://www.python.org/).
-- **Dependencies**: The bot depends on several libraries for HTTP requests, parsing, and data visualization. These are defined in the `Cargo.toml` and Python requirements file.
+
+## TODO
+
+- Add how to compile and setup
+- Refactor code for better error handling
+- Add code to stay within reddit API limitations
+- Setup a way to handle virtual environment for python
+- Add code to update the graph to the repo every 24 hours
+- Deploy to a server
