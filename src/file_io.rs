@@ -133,3 +133,15 @@ pub fn copy_file(source: &str, destination: &str) {
         }
     }
 }
+pub fn empty_file(file_path: &str) -> Result<(), io::Error> {
+    match File::create(file_path) {
+        Ok(_) => {
+            println!("The file '{}' has been successfully emptied.", file_path);
+            Ok(())
+        }
+        Err(e) => {
+            eprintln!("Failed to empty the file '{}': {}", file_path, e);
+            Err(e)
+        }
+    }
+}
