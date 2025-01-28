@@ -5,12 +5,17 @@ use std::fs::File;
 use std::io::BufReader;
 use std::{
     fs,
-    io::{self, BufRead, ErrorKind, Write},
+    io::{self, Error, BufRead, ErrorKind, Write},
 };
+use std::collections::HashMap;
 
+// #[derive(Deserialize)]
+// struct Queries {
+//     queries: std::collections::HashMap<String, Vec<String>>,
+// }
 #[derive(Deserialize)]
 struct Queries {
-    queries: std::collections::HashMap<String, Vec<String>>,
+    queries: HashMap<String, Vec<String>>,
 }
 
 pub fn check_for_file(filename: &str) {
@@ -105,41 +110,15 @@ pub fn get_data(filename: &str, info_vec: &mut Vec<String>) {
         }
     }
 }
-pub fn get_vec_from_json(filename: &str) -> Result<Vec<Vec<String>>, Box<dyn std::error::Error>> {
-    let json_file = fs::read_to_string(filename).map_err(|err| {
-        println!("Could not read file {}: ", filename);
-        err
-    })?;
 
-    let json: Value = serde_json::from_str(&json_file).map_err(|err| {
-        println!("Could not parse file {}: ", filename);
-        err
-    })?;
-    let mut result: Vec<Vec<String>> = Vec::new();
-    if let Some(queries) = json.get("queries").and_then(|v| v.as_object()) {
-        for value in queries.values() {
-            if let Some(arr) = value.as_array() {
-                let strings: Vec<String> = arr
-                    .iter()
-                    .filter_map(|v| v.as_str().map(|s| s.to_string()))
-                    .collect();
-                result.push(strings);
-            }
-        }
-    }
-    Ok(result)
-}
-pub fn get_querynames(filename: &str) -> Vec<String> {
-    let file = File::open(filename).unwrap();
+pub fn load_queries_from_json(file_path: &str) -> Result<HashMap<String, Vec<String>>, Error> {
+    // Open the JSON file
+    let file = File::open(file_path)?;
     let reader = BufReader::new(file);
-    let mut result: Vec<String> = Vec::new();
 
-    // Parse the JSON file into a Queries struct
-    let parsed: Queries = serde_json::from_reader(reader).unwrap();
+    // Deserialize the JSON into the Queries struct
+    let queries_data: Queries = serde_json::from_reader(reader)?;
 
-    // Iterate over all query names in the "queries" field and print them
-    for query_name in parsed.queries.keys() {
-        result.push(query_name.to_string());
-    }
-    result
+    // Return the HashMap from the struct
+    Ok(queries_data.queries)
 }
