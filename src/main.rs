@@ -1,4 +1,3 @@
-
 mod analysis_op;
 mod authentication;
 mod db_op;
@@ -25,21 +24,32 @@ impl UserInfo {
 fn main() {
     let cred_filename = String::from("credentials.txt");
     let token_filename = String::from("token.txt");
+    let database_filename = String::from("data.db3");
     let mut user_info = UserInfo::new();
     let mut token = String::new();
     let keyword_filename = String::from("keywords.json");
     define_user_cred(cred_filename, &mut user_info);
     setup_token(&token_filename, user_info, &mut token);
     post_op::process_reddit_posts(&mut token);
-    let posts_vec: Vec<String> = db_op::query_values("data.db3", "posts").unwrap();
+    let posts_vec: Vec<String> = db_op::query_values(&database_filename, "posts").unwrap();
     let query = file_io::load_queries_from_json(&keyword_filename);
+    let mut keywords: Vec<String> = Vec::new();
+    let mut mentions: Vec<i64> = Vec::new();
     match query {
         Ok(map) => {
-            // Iterate through the HashMap if it's Ok
-            for (key, value) in &map {
+            // Directly use the map instead of borrowing it with &
+            for (key, value) in map { // Move out of the map directly
                 println!("Key: {}", key);
+                keywords.push(key.clone()); // Convert String to &str
+                db_op::update_mentions_table(&database_filename, key).expect("Failed to update mentions table");
                 let result = analysis_op::search_titles(value.to_vec(), &posts_vec);
-                //println!("Result: {:?}", result);
+                if result.is_empty() {
+                    mentions.push(0);
+                }
+                else { 
+                    mentions.push(result.len() as i64);
+                }
+                
             }
         }
         Err(e) => {
@@ -47,6 +57,9 @@ fn main() {
             eprintln!("Error: {}", e);
         }
     }
+    db_op::update_field_values(&database_filename, keywords, mentions).expect("Failed to update mentions table values");
+    
+    
 }
 
 fn setup_token(token_filename: &String, user_info: UserInfo, token: &mut String) {

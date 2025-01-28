@@ -1,13 +1,13 @@
 use super::UserInfo;
 use serde::Deserialize;
 use serde_json::Value;
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::BufReader;
 use std::{
     fs,
-    io::{self, Error, BufRead, ErrorKind, Write},
+    io::{self, BufRead, Error, ErrorKind, Write},
 };
-use std::collections::HashMap;
 
 // #[derive(Deserialize)]
 // struct Queries {
