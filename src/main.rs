@@ -4,6 +4,8 @@ mod authentication;
 mod db_op;
 mod file_io;
 mod post_op;
+use chrono::{Local, Timelike};
+use crate::file_io::del_file;
 
 struct UserInfo {
     client_id: String,
@@ -29,45 +31,62 @@ fn main() {
     let mut user_info = UserInfo::new();
     let mut token = String::new();
     let keyword_filename = String::from("keywords.json");
+
     define_user_cred(cred_filename, &mut user_info);
-    setup_token(&token_filename, user_info, &mut token);
-    post_op::process_reddit_posts(&mut token);
-    let posts_vec: Vec<String> = db_op::query_values(&database_filename, "posts").unwrap();
-    let query = file_io::load_queries_from_json(&keyword_filename);
-    let mut keywords: Vec<String> = Vec::new();
-    let mut mentions: Vec<i64> = Vec::new();
-    match query {
-        Ok(map) => {
-            // Directly use the map instead of borrowing it with &
-            for (key, value) in map { // Move out of the map directly
-                println!("Key: {}", key);
-                keywords.push(key.clone()); // Convert String to &str
-                db_op::update_mentions_table(&database_filename, key).expect("Failed to update mentions table");
-                let result = analysis_op::search_titles(value.to_vec(), &posts_vec);
-                if result.is_empty() {
-                    mentions.push(0);
+
+    // Loop until 23:59
+    loop {
+        // Check the current time
+        let now = Local::now();
+        if now.hour() == 23 && now.minute() == 59 {
+            println!("Ending the loop as the time is 23:59.");
+            break;
+        }
+
+        // Recurring operations
+        setup_token(&token_filename, &user_info, &mut token);
+        post_op::process_reddit_posts(&mut token);
+
+        let posts_vec: Vec<String> = db_op::query_values(&database_filename, "posts").unwrap();
+        let query = file_io::load_queries_from_json(&keyword_filename);
+        let mut keywords: Vec<String> = Vec::new();
+        let mut mentions: Vec<i64> = Vec::new();
+
+        match query {
+            Ok(map) => {
+                for (key, value) in map {
+                    println!("Key: {}", key);
+                    keywords.push(key.clone());
+                    db_op::update_mentions_table(&database_filename, key)
+                        .expect("Failed to update mentions table");
+                    let result = analysis_op::search_titles(value.to_vec(), &posts_vec);
+                    if result.is_empty() {
+                        mentions.push(0);
+                    } else {
+                        mentions.push(result.len() as i64);
+                    }
                 }
-                else { 
-                    mentions.push(result.len() as i64);
-                }
-                
+            }
+            Err(e) => {
+                eprintln!("Error: {}", e);
             }
         }
-        Err(e) => {
-            // Handle the error case
-            eprintln!("Error: {}", e);
-        }
+        
+        // Start the loop again (implicitly)
+        println!("Iteration complete. Starting next iteration...");
     }
-    db_op::delete_table(&database_filename, "posts").expect("Failed to delete posts");
-    let destination = format!{"python_plot/{}", &database_filename};
+    let destination = format!("python_plot/{}", &database_filename);
     file_io::copy_file(&database_filename, &destination);
+
     if let Err(e) = analysis_op::run_python_script() {
         eprintln!("Error running Python script: {}", e);
         exit(1);
     }
+    db_op::delete_table(&database_filename, "posts").expect("Failed to delete posts");
+    del_file(&token_filename).expect("Failed to delete file");
+    del_file(&destination).expect("Failed to delete file");
 }
-
-fn setup_token(token_filename: &String, user_info: UserInfo, token: &mut String) {
+fn setup_token(token_filename: &String, user_info: &UserInfo, token: &mut String) {
     file_io::check_for_file(&token_filename);
     authentication::establish_connection_success();
     match file_io::is_file_empty(&token_filename) {
