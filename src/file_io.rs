@@ -9,10 +9,6 @@ use std::{
     io::{self, BufRead, Error, ErrorKind, Write},
 };
 
-// #[derive(Deserialize)]
-// struct Queries {
-//     queries: std::collections::HashMap<String, Vec<String>>,
-// }
 #[derive(Deserialize)]
 struct Queries {
     queries: HashMap<String, Vec<String>>,
@@ -141,6 +137,18 @@ pub fn empty_file(file_path: &str) -> Result<(), io::Error> {
         }
         Err(e) => {
             eprintln!("Failed to empty the file '{}': {}", file_path, e);
+            Err(e)
+        }
+    }
+}
+pub fn del_file(file_path: &str) -> Result<(), io::Error> {
+    match fs::remove_file(file_path) {
+        Ok(_) => {
+            println!("File '{}' has been deleted successfully.", file_path);
+            Ok(())
+        }
+        Err(e) => {
+            eprintln!("Error deleting file '{}': {}", file_path, e);
             Err(e)
         }
     }

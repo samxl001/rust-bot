@@ -18,7 +18,7 @@ pub fn search_titles(query: Vec<String>, info: &Vec<String>) -> Vec<String> {
         for sentence in info.iter() {
             let word = word.to_lowercase();
             if sentence.to_lowercase().contains(&word) {
-                println!("{}", sentence);
+                //println!("{}", sentence);
                 analysis.result.push(sentence.clone());
             }
         }
