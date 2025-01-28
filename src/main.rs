@@ -1,3 +1,4 @@
+use std::fs;
 use std::process::exit;
 
 mod analysis_op;
@@ -59,6 +60,9 @@ fn main() {
             eprintln!("Error: {}", e);
         }
     }
+    db_op::delete_table(&database_filename, "posts").expect("Failed to delete posts");
+    let destination = format!{"python_plot/{}", &database_filename};
+    file_io::copy_file(&database_filename, &destination);
     if let Err(e) = analysis_op::run_python_script() {
         eprintln!("Error running Python script: {}", e);
         exit(1);

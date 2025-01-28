@@ -122,3 +122,14 @@ pub fn load_queries_from_json(file_path: &str) -> Result<HashMap<String, Vec<Str
     // Return the HashMap from the struct
     Ok(queries_data.queries)
 }
+
+pub fn copy_file(source: &str, destination: &str) {
+    match fs::copy(source, destination) {
+        Ok(bytes) => {
+            println!("File copied successfully! {} bytes were copied.", bytes);
+        }
+        Err(e) => {
+            eprintln!("Failed to copy file from '{}' to '{}': {}", source, destination, e);
+        }
+    }
+}
