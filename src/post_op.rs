@@ -20,10 +20,9 @@ fn fetch_reddit_posts(token: &str, user_agent: &str) -> Result<Value, Box<dyn Er
     }
 }
 
-pub fn process_reddit_posts(token: &mut str) {
+pub fn process_reddit_posts(token: &mut str, filename: &str) {
     println!("Start processing posts...");
     let mut post_vec: Vec<&str> = Vec::new();
-    let db_filename = String::from("data.db3");
     let user_agent = "RustRedditClient/0.1";
     match fetch_reddit_posts(token, user_agent) {
         Ok(json) => {
@@ -38,8 +37,7 @@ pub fn process_reddit_posts(token: &mut str) {
                     }
                 }
             }
-            db_op::populate_table(&db_filename, "posts", post_vec)
-                .expect("Failed to populate table");
+            db_op::populate_table(&filename, "posts", post_vec).expect("Failed to populate table");
         }
         Err(e) => {
             println!("Failed to fetch or process posts: {}", e);

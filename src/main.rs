@@ -4,8 +4,8 @@ mod authentication;
 mod db_op;
 mod file_io;
 mod post_op;
-use chrono::{Local, Timelike};
 use crate::file_io::del_file;
+use chrono::{Local, Timelike};
 
 struct UserInfo {
     client_id: String,
@@ -31,10 +31,41 @@ fn main() {
     let mut user_info = UserInfo::new();
     let mut token = String::new();
     let keyword_filename = String::from("keywords.json");
-
+    let table_name = String::from("table");
     define_user_cred(cred_filename, &mut user_info);
 
-    // Loop until 23:59
+    process_reddit(
+        &token_filename,
+        &database_filename,
+        &mut user_info,
+        &mut token,
+        &keyword_filename,
+        &table_name,
+    );
+    // Loop until 23:59 then run the rest of the function
+    let destination = format!("python_plot/{}", &database_filename);
+    file_io::copy_file(&database_filename, &destination);
+
+    if let Err(e) = analysis_op::run_python_script() {
+        eprintln!("Error running Python script: {}", e);
+        exit(1);
+    }
+    db_op::delete_table(&database_filename, &table_name).expect("Failed to delete posts");
+    del_file(&token_filename).expect("Failed to delete file");
+    del_file(&destination).expect("Failed to delete file");
+    //Start the loop back again after waiting 5 mins
+    //std::thread::sleep(std::time::Duration::from_secs(360));
+    //process_reddit(&token_filename, &database_filename, &mut user_info, &mut token, &keyword_filename, &table_name);
+}
+
+fn process_reddit(
+    token_filename: &String,
+    database_filename: &String,
+    user_info: &mut UserInfo,
+    mut token: &mut String,
+    keyword_filename: &String,
+    table_name: &String,
+) {
     loop {
         // Check the current time
         let now = Local::now();
@@ -45,9 +76,9 @@ fn main() {
 
         // Recurring operations
         setup_token(&token_filename, &user_info, &mut token);
-        post_op::process_reddit_posts(&mut token);
+        post_op::process_reddit_posts(&mut token, &database_filename);
 
-        let posts_vec: Vec<String> = db_op::query_values(&database_filename, "posts").unwrap();
+        let posts_vec: Vec<String> = db_op::query_values(&database_filename, &table_name).unwrap();
         let query = file_io::load_queries_from_json(&keyword_filename);
         let mut keywords: Vec<String> = Vec::new();
         let mut mentions: Vec<i64> = Vec::new();
@@ -66,27 +97,19 @@ fn main() {
                         mentions.push(result.len() as i64);
                     }
                 }
-                db_op::update_field_values(&database_filename, keywords, mentions).expect("Failed to update field values");
+                db_op::update_field_values(&database_filename, keywords, mentions)
+                    .expect("Failed to update field values");
             }
             Err(e) => {
                 eprintln!("Error: {}", e);
             }
         }
-        
+
         // Start the loop again (implicitly)
         println!("Iteration complete. Starting next iteration...");
     }
-    let destination = format!("python_plot/{}", &database_filename);
-    file_io::copy_file(&database_filename, &destination);
-
-    if let Err(e) = analysis_op::run_python_script() {
-        eprintln!("Error running Python script: {}", e);
-        exit(1);
-    }
-    db_op::delete_table(&database_filename, "posts").expect("Failed to delete posts");
-    del_file(&token_filename).expect("Failed to delete file");
-    del_file(&destination).expect("Failed to delete file");
 }
+
 fn setup_token(token_filename: &String, user_info: &UserInfo, token: &mut String) {
     file_io::check_for_file(&token_filename);
     authentication::establish_connection_success();

@@ -124,7 +124,10 @@ pub fn copy_file(source: &str, destination: &str) {
             println!("File copied successfully! {} bytes were copied.", bytes);
         }
         Err(e) => {
-            eprintln!("Failed to copy file from '{}' to '{}': {}", source, destination, e);
+            eprintln!(
+                "Failed to copy file from '{}' to '{}': {}",
+                source, destination, e
+            );
         }
     }
 }

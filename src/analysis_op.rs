@@ -1,4 +1,4 @@
-use std::process::{Command, exit};
+use std::process::{exit, Command};
 struct AnalysisOp {
     query: Vec<String>,
     result: Vec<String>,
@@ -34,8 +34,8 @@ pub fn run_python_script() -> Result<(), Box<dyn std::error::Error>> {
 
     // Run the Python script using the virtual environment's Python executable
     let output = Command::new(python_executable)
-        .arg(python_script)  // Add any additional arguments for the script here
-        .output()  // Capture output (stdout and stderr)
+        .arg(python_script) // Add any additional arguments for the script here
+        .output() // Capture output (stdout and stderr)
         .expect("Failed to execute Python script");
 
     // Handle output from the Python script
@@ -45,6 +45,9 @@ pub fn run_python_script() -> Result<(), Box<dyn std::error::Error>> {
         exit(1);
     }
 
-    println!("Python script executed successfully: {}", String::from_utf8_lossy(&output.stdout));
+    println!(
+        "Python script executed successfully: {}",
+        String::from_utf8_lossy(&output.stdout)
+    );
     Ok(())
 }

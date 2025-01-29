@@ -36,7 +36,6 @@ pub fn populate_table(filename: &str, table_name: &str, post_vec: Vec<&str>) -> 
     Ok(())
 }
 pub fn query_values(filename: &str, table_name: &str) -> Result<Vec<String>> {
-    
     let conn = match Connection::open(filename) {
         Ok(c) => c,
         Err(e) => {
@@ -87,10 +86,7 @@ pub fn delete_table(filename: &str, table_name: &str) -> Result<()> {
         }
     }
 }
-pub fn update_mentions_table(
-    database_filename: &str,
-    fieldname: String,
-) -> Result<()> {
+pub fn update_mentions_table(database_filename: &str, fieldname: String) -> Result<()> {
     // Open the database connection
     let conn = match Connection::open(database_filename) {
         Ok(c) => c,
@@ -176,7 +172,11 @@ pub fn update_field_values(
 
     // Combine values and today's date into a single vector
     let mut query_values: Vec<Box<dyn rusqlite::ToSql>> = vec![];
-    query_values.extend(vec_values.into_iter().map(|v| Box::new(v) as Box<dyn rusqlite::ToSql>));
+    query_values.extend(
+        vec_values
+            .into_iter()
+            .map(|v| Box::new(v) as Box<dyn rusqlite::ToSql>),
+    );
     query_values.push(Box::new(today.format("%Y-%m-%d").to_string()));
 
     // Use params_from_iter to bind the query values
